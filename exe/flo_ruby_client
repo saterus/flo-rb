@@ -1,0 +1,29 @@
+#!/usr/bin/env ruby
+
+require "thor"
+require_relative "../lib/flo"
+
+class FloCLI < Thor
+  class_option :host, default: "localhost", aliases: :H
+  class_option :port, default: 3000, type: :numeric, aliases: :p
+
+  desc "produce", "Used to produce events onto the stream"
+  option :namespace, aliases: :n
+  option :parent, type: :numeric, aliases: :P, banner: "PARENT_EVENT_ID"
+  option :event_data, aliases: :d
+  def produce()
+    puts "producing: #{options.inspect}"
+  end
+
+  desc "consume", "Used to read events from the stream"
+  option :namespace, aliases: :n
+  option :limit, type: :numeric, aliases: :l
+  option :start_after, type: :numeric, aliases: :s, banner: "EVENT_ID"
+  option :tail, type: :boolean, aliases: :t
+  def consume()
+    puts "consuming"
+  end
+
+end
+
+FloCLI.start(ARGV)
