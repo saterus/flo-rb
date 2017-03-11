@@ -1,6 +1,8 @@
 #!/usr/bin/env ruby
 
 require "bundler/setup"
+require "pry"
+
 require "flo"
 
 # You can add fixtures and/or initialization code here to make experimenting
@@ -10,5 +12,4 @@ require "flo"
 # require "pry"
 # Pry.start
 
-require "irb"
-IRB.start
+Pry.start
