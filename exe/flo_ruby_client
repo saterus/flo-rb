@@ -8,18 +8,26 @@ class FloCLI < Thor
   class_option :port, default: 3000, type: :numeric, aliases: :p
 
   desc "produce", "Used to produce events onto the stream"
-  option :namespace, aliases: :n
   option :parent, type: :numeric, aliases: :P, banner: "PARENT_EVENT_ID"
   option :event_data, aliases: :d
+  option :namespace, aliases: :n, required: true
   def produce()
-    puts "producing: #{options.inspect}"
+    Flo.config do |c|
+      c.host = options[:host]
+      c.port = options[:port]
+    end
+
+    client = Flo::Client.new
+    client.connect
+    ack = client.produce(options[:namespace], options[:event_data], parent: options[:parent])
+    puts ack
   end
 
   desc "consume", "Used to read events from the stream"
-  option :namespace, aliases: :n
   option :limit, type: :numeric, aliases: :l
   option :start_after, type: :numeric, aliases: :s, banner: "EVENT_ID"
   option :tail, type: :boolean, aliases: :t
+  option :namespace, aliases: :n, default: "/**/*"
   def consume()
     puts "consuming"
   end
