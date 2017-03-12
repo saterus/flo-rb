@@ -7,19 +7,15 @@ class FloCLI < Thor
   class_option :host, default: "localhost", aliases: :H
   class_option :port, default: 3000, type: :numeric, aliases: :p
 
-  desc "produce", "Used to produce events onto the stream"
+  desc "produce", "NAMESPACE STDIN"
   option :parent, aliases: :P, banner: "COUNTER.ACTOR"
   option :event_data, aliases: :d
-  option :namespace, aliases: :n, required: true
-  def produce()
-    Flo.config do |c|
-      c.host = options[:host]
-      c.port = options[:port]
-    end
+  def produce(namespace)
+    setup_cluster_address
 
-    client = Flo::Client.new
-    client.connect
-    ack = client.produce(options[:namespace], options[:event_data], parent: Flo::EventId.parse(options[:parent]))
+    client = Flo::Client.new.connect
+    data = options.fetch(:event_data) { $stdin.read }
+    ack = client.produce(namespace, data, parent: Flo::EventId.parse(options[:parent]))
     puts ack
     client.disconnect
   end
@@ -31,6 +27,15 @@ class FloCLI < Thor
   option :namespace, aliases: :n, default: "/**/*"
   def consume()
     puts "consuming"
+  end
+
+  private
+
+  def setup_cluster_address
+    Flo.config do |c|
+      c.host = options[:host]
+      c.port = options[:port]
+    end
   end
 
 end
