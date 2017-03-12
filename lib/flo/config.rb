@@ -9,10 +9,4 @@ module Flo
       config
     end
   end
-
-  def self.config
-    @config ||= Config.defaults
-    yield @config if block_given?
-    @config
-  end
 end

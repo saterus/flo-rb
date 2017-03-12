@@ -1,5 +1,7 @@
 module Flo
   class Client
+    ACK_HEADER = "FLO_ACK\n"
+    ERROR_HEADER = "FLO_ERR\n"
 
     def initialize(host: Flo.config.host, port: Flo.config.port)
       @host = host
@@ -17,25 +19,13 @@ module Flo
       self
     end
 
-    PRODUCE_HEADER = "FLO_PRO\n"
     def produce(namespace, message_data, op_id: 0, parent: EventId.zero)
-      stream = ByteStreamWriter.new
+      message = MessageSerializer.new(namespace, op_id, parent, message_data)
 
-      stream.str(PRODUCE_HEADER)
-      stream.puts(namespace)
-      stream.u64(parent.counter)
-      stream.u16(parent.actor)
-      stream.u32(op_id)
-      stream.u32(message_data.length)
-
-      stream.str(message_data)
-
-      @socket.write(stream)
+      @socket.write(message.serialize)
       parse_ack(@socket.recvfrom(64).first)
     end
 
-    ACK_HEADER = "FLO_ACK\n"
-    ERROR_HEADER = "FLO_ERR\n"
     def parse_ack(ack)
       reader = ByteStreamReader.new(ack)
       header = reader.chars(8)

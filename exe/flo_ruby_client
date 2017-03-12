@@ -13,11 +13,12 @@ class FloCLI < Thor
   def produce(namespace)
     setup_cluster_address
 
-    client = Flo::Client.new.connect
     data = options.fetch(:event_data) { $stdin.read }
-    ack = client.produce(namespace, data, parent: Flo::EventId.parse(options[:parent]))
-    puts ack
-    client.disconnect
+    parent = Flo::EventId.parse(options[:parent])
+
+    Flo.client do |client|
+      puts client.produce(namespace, data, parent: parent)
+    end
   end
 
   desc "consume", "Used to read events from the stream"
