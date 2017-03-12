@@ -12,30 +12,31 @@ module Flo
       self
     end
 
-    PRODUCE_HEADER = "FLO_PRO\n"
-    def produce(namespace, message_data, op_id: 0, parent: nil)
-      counter, actor = split_parent(parent)
+    def disconnect
+      @socket.close
+      self
+    end
 
+    PRODUCE_HEADER = "FLO_PRO\n"
+    def produce(namespace, message_data, op_id: 0, parent: EventId.zero)
       stream = ByteStreamWriter.new
 
       stream.str(PRODUCE_HEADER)
       stream.puts(namespace)
-      stream.u64(counter)
-      stream.u16(actor)
+      stream.u64(parent.counter)
+      stream.u16(parent.actor)
       stream.u32(op_id)
       stream.u32(message_data.length)
 
       stream.str(message_data)
 
       @socket.write(stream)
-      parse_ack
+      parse_ack(@socket.recvfrom(64).first)
     end
 
     ACK_HEADER = "FLO_ACK\n"
     ERROR_HEADER = "FLO_ERR\n"
-    def parse_ack
-      ack, _ = @socket.recvfrom(64)
-
+    def parse_ack(ack)
       reader = ByteStreamReader.new(ack)
       header = reader.chars(8)
       case header
@@ -59,16 +60,6 @@ module Flo
       err_code = reader.u8
       desc = reader.rest
       raise "Recieved an error: op_id=#{op_id}, err_code=#{err_code}, desc=#{desc}"
-    end
-
-    def split_parent(parent_event_id)
-      return [0, 0] if parent_event_id.nil? || parent_event_id.empty?
-
-      reader = ByteStreamReader.new(parent_event_id)
-      counter = reader.u64
-      actor = reader.u16
-
-      [counter, actor]
     end
 
   end
