@@ -20,14 +20,16 @@ module Flo
     end
 
     def produce(namespace, message_data, op_id: 0, parent: EventId.zero)
-      message = MessageSerializer.new(namespace, op_id, parent, message_data)
+      message = Protocol::MessageSerializer.new(namespace, op_id, parent, message_data)
 
       @socket.write(message.serialize)
       parse_ack(@socket.recvfrom(64).first)
     end
 
+    private
+
     def parse_ack(ack)
-      reader = ByteStreamReader.new(ack)
+      reader = Protocol::ByteReader.new(ack)
       header = reader.chars(8)
       case header
       when ACK_HEADER then read_ack(reader)

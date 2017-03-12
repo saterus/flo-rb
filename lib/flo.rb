@@ -1,9 +1,9 @@
 require "socket"
 
 require_relative "flo/version"
-require_relative "flo/byte_stream_reader"
-require_relative "flo/byte_stream_writer"
-require_relative "flo/message_serializer"
+require_relative "flo/protocol/byte_reader"
+require_relative "flo/protocol/byte_writer"
+require_relative "flo/protocol/message_serializer"
 require_relative "flo/event_id"
 require_relative "flo/config"
 require_relative "flo/client"
